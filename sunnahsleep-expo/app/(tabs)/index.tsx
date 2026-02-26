@@ -3,17 +3,19 @@ import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { ErrorView } from "@/components/ErrorView";
+import { useLocale } from "@/lib/i18n";
 import { durationHours, formatDuration } from "@/lib/sleepStats";
 import { getSleepEntries, getSleepGoalHours } from "@/lib/storage";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { t } = useLocale();
   const [lastSleep, setLastSleep] = useState<{ bedtime: string; waketime: string } | null>(null);
   const [goalHours, setGoalHours] = useState(8);
   const [loadError, setLoadError] = useState<string | null>(null);
   const hour = new Date().getHours();
   const greeting =
-    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+    hour < 12 ? t("greeting_morning") : hour < 17 ? t("greeting_afternoon") : t("greeting_evening");
 
   const load = useCallback(() => {
     setLoadError(null);
@@ -44,11 +46,11 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push("/(tabs)/sleep")}
             className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
-            accessibilityLabel="Log sleep"
+            accessibilityLabel={t("log_sleep")}
             accessibilityHint="Opens screen to record last night's sleep"
           >
             <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Log sleep
+              {t("log_sleep")}
             </Text>
             <Text className="mt-1 text-muted-foreground">
               Record last night's sleep
@@ -58,28 +60,42 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push("/(tabs)/alarms")}
             className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
-            accessibilityLabel="Alarms"
-            accessibilityHint="Set bedtime and Fajr reminders"
+            accessibilityLabel={t("alarms")}
+            accessibilityHint={t("alarms_short")}
           >
             <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Alarms
+              {t("alarms")}
             </Text>
             <Text className="mt-1 text-muted-foreground">
-              Set bedtime and Fajr reminders
+              {t("alarms_short")}
             </Text>
           </Pressable>
 
           <Pressable
             onPress={() => router.push("/(tabs)/duas")}
             className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
-            accessibilityLabel="Bedtime Duas"
-            accessibilityHint="Read evening adhkar"
+            accessibilityLabel={t("duas")}
+            accessibilityHint={t("duas_short")}
           >
             <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Bedtime Duas
+              {t("duas")}
             </Text>
             <Text className="mt-1 text-muted-foreground">
-              Read and listen to evening adhkar
+              {t("duas_short")}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => (router.push as (href: string) => void)("/(tabs)/prayer")}
+            className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
+            accessibilityLabel={t("prayer_times")}
+            accessibilityHint="Prayer times and Qibla"
+          >
+            <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+              {t("prayer_times")}
+            </Text>
+            <Text className="mt-1 text-muted-foreground">
+              Today's times and Qibla direction
             </Text>
           </Pressable>
         </View>
@@ -95,12 +111,12 @@ export default function HomeScreen() {
           accessibilityLabel="Last night sleep summary"
         >
           <Text className="font-semibold text-foreground dark:text-foreground-dark">
-            Last night
+            {t("last_night")}
           </Text>
           <Text className="mt-2 text-muted-foreground">
             {lastSleep
               ? `${lastSleep.bedtime} → ${lastSleep.waketime} (${formatDuration(durationHours(lastSleep.bedtime, lastSleep.waketime))} / ${goalHours}h goal)`
-              : 'No sleep logged yet. Tap "Log sleep" to add your first entry.'}
+              : t("no_sleep_yet")}
           </Text>
         </View>
       </View>

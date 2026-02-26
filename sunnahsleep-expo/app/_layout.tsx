@@ -8,6 +8,8 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
+import { registerBackgroundFetchAsync } from "@/lib/backgroundFetch";
+import { LocaleProvider } from "@/lib/i18n";
 import { setupNotificationChannel } from "@/lib/notifications";
 
 export {
@@ -36,6 +38,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       setupNotificationChannel();
+      registerBackgroundFetchAsync();
       SplashScreen.hideAsync();
     }
   }, [loaded]);
@@ -52,12 +55,14 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-      </Stack>
+      <LocaleProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+        </Stack>
+      </LocaleProvider>
     </ThemeProvider>
   );
 }

@@ -7,6 +7,10 @@ export const STORAGE_KEYS = {
   SLEEP_GOAL_HOURS: "sunnahsleep_sleep_goal_hours",
   DUAS_FAVORITES: "sunnahsleep_duas_favorites",
   ONBOARDING_DONE: "sunnahsleep_onboarding_done",
+  LOCATION_COORDS: "sunnahsleep_location_coords",
+  LOCALE_OVERRIDE: "sunnahsleep_locale_override",
+  PRAYER_TIMES_CACHE: "sunnahsleep_prayer_times_cache",
+  USE_LOCATION_FOR_PRAYER: "sunnahsleep_use_location_for_prayer",
 } as const;
 
 const KEYS = STORAGE_KEYS;
@@ -81,7 +85,63 @@ export async function setAlarms(alarms: Alarm[]): Promise<void> {
   await AsyncStorage.setItem(KEYS.ALARMS, JSON.stringify(alarms));
 }
 
-/** Clears all app data (sleep, alarms, favorites, goal, notifications pref, onboarding). Caller should cancel scheduled notifications after this. */
+export type LocationCoords = { latitude: number; longitude: number } | null;
+
+export async function getLocationCoords(): Promise<LocationCoords> {
+  try {
+    const raw = await AsyncStorage.getItem(KEYS.LOCATION_COORDS);
+    if (!raw) return null;
+    const o = JSON.parse(raw) as { latitude: number; longitude: number };
+    return Number.isFinite(o?.latitude) && Number.isFinite(o?.longitude) ? o : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setLocationCoords(coords: LocationCoords): Promise<void> {
+  if (coords) await AsyncStorage.setItem(KEYS.LOCATION_COORDS, JSON.stringify(coords));
+  else await AsyncStorage.removeItem(KEYS.LOCATION_COORDS);
+}
+
+export async function getLocaleOverride(): Promise<string | null> {
+  return await AsyncStorage.getItem(KEYS.LOCALE_OVERRIDE);
+}
+
+export async function setLocaleOverride(locale: string | null): Promise<void> {
+  if (locale) await AsyncStorage.setItem(KEYS.LOCALE_OVERRIDE, locale);
+  else await AsyncStorage.removeItem(KEYS.LOCALE_OVERRIDE);
+}
+
+export async function getUseLocationForPrayer(): Promise<boolean> {
+  try {
+    const raw = await AsyncStorage.getItem(KEYS.USE_LOCATION_FOR_PRAYER);
+    return raw === null ? true : raw === "1";
+  } catch {
+    return true;
+  }
+}
+
+export async function setUseLocationForPrayer(use: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.USE_LOCATION_FOR_PRAYER, use ? "1" : "0");
+}
+
+export type PrayerTimesCache = { date: string; timings: Record<string, string> } | null;
+
+export async function getPrayerTimesCache(): Promise<PrayerTimesCache> {
+  try {
+    const raw = await AsyncStorage.getItem(KEYS.PRAYER_TIMES_CACHE);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setPrayerTimesCache(cache: PrayerTimesCache): Promise<void> {
+  if (cache) await AsyncStorage.setItem(KEYS.PRAYER_TIMES_CACHE, JSON.stringify(cache));
+  else await AsyncStorage.removeItem(KEYS.PRAYER_TIMES_CACHE);
+}
+
+/** Clears all app data (sleep, alarms, favorites, goal, notifications pref, onboarding, location, locale, prayer cache). Caller should cancel scheduled notifications after this. */
 export async function clearAllData(): Promise<void> {
   await Promise.all(
     Object.values(KEYS).map((key) => AsyncStorage.removeItem(key))

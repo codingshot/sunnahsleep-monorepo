@@ -8,19 +8,20 @@
 
 | Status | Count | Notes |
 |--------|--------|--------|
-| Done `[x]` | 46 | Implemented and verified |
-| In progress `[~]` | 1 | Snooze (dismiss via tap done) |
-| Not started `[ ]` | 4 | Prayer times, Qibla, Location, Language, Background fetch (all optional) |
-| N/A | 5 | Auth (no PWA auth); optional features deferred |
+| Done `[x]` | 52 | All checklist items implemented |
+| In progress `[~]` | 0 | — |
+| Not started `[ ]` | 0 | — |
+| N/A | 5 | Auth (no PWA auth) |
 
-**Last updated:** Style parity pass + accessibility (reduce motion), full data reset, theme constants. Run `cd sunnahsleep-expo && npm run test` to verify TypeScript.
+**Last updated:** Remaining optional features completed: Snooze/Dismiss, Prayer times, Qibla, Location, Language, Background fetch. Run `cd sunnahsleep-expo && npm run test` to verify TypeScript.
 
-**Recent completions:**
-- Reduced motion: `useReduceMotionEnabled()` in tabs; `animationEnabled: !reduceMotion`.
-- Text scaling: RN Text respects system font scale by default.
-- Clear all data: Settings "Clear all data" → confirm → clears storage + cancels notifications → redirect to onboarding.
-- Style parity: All Switch/ActivityIndicator use `constants/theme.ts` (primary, destructive, muted); tabs use theme primary for tint.
-- Offline writes: Marked done (local-only; no server sync).
+**Recent completions (this pass):**
+- §5 Snooze/Dismiss: Notification category with "Snooze 5 min" and "Dismiss"; snooze schedules one-time notification; response listener in tabs layout.
+- §6 Prayer times: New Prayer tab; Aladhan API; by location or fallback address; cache + background refresh.
+- §6 Qibla: Angle and direction from user coords (lib/qibla.ts) on Prayer screen.
+- §7 Location: expo-location; Settings "Use device location for prayer times"; used for prayer + Qibla.
+- §7 Language: lib/i18n.ts with en/ar; LocaleProvider in root; Settings English/العربية picker.
+- §8 Background fetch: lib/backgroundFetch.ts; task refreshes prayer times cache; registered in root layout; iOS UIBackgroundModes fetch.
 
 ---
 
@@ -143,7 +144,7 @@ Add every route/screen and data dependency as a row in the right section (or §1
 | [x] | Edit alarm | Same as add | Inline edit (time + label) in `app/(tabs)/alarms.tsx` | Edit and save; notification rescheduled |
 | [x] | Delete alarm | Handler | Remove button | Alarm removed from list and storage |
 | [x] | Alarm fires at set time | Web API / background | `lib/notifications.ts` + DAILY trigger | At set time, notification triggers; cancel on remove/disable |
-| [~] | Snooze / dismiss | Actions on notification | Expo notification categories (optional) | Default: tap opens app to Alarms; full snooze needs category actions |
+| [x] | Snooze / dismiss | Actions on notification | `setNotificationCategoryAsync` + Snooze 5 min / Dismiss in `lib/notifications.ts` | Snooze schedules one-time in 5 min; Dismiss/tap opens Alarms |
 | [x] | Repeat (daily) | PWA logic | DAILY trigger in `lib/notifications.ts` | Alarms repeat daily at set time; weekdays = future enhancement |
 
 ---
@@ -152,8 +153,8 @@ Add every route/screen and data dependency as a row in the right section (or §1
 
 | Status | Feature | PWA location | Expo location | How to verify |
 |--------|---------|--------------|---------------|----------------|
-| [ ] | Prayer times display | Component + API or calc | Future: API or calc | Optional; not in initial PWA scope |
-| [ ] | Qibla / compass (if any) | Component | Future: sensors | Optional |
+| [x] | Prayer times display | Component + API or calc | `app/(tabs)/prayer.tsx` + Aladhan API (`lib/prayerTimes.ts`) | Times by location or fallback address; cache + background refresh |
+| [x] | Qibla / compass (if any) | Component | Qibla angle from coords in `lib/qibla.ts` on Prayer screen | Angle and direction (e.g. South-East) from user location |
 | [x] | Duas / content list | Routes + content | `app/(tabs)/duas.tsx` | Bedtime duas with Arabic, transliteration, meaning |
 | [x] | Favorites / bookmarks | Storage + UI | `getDuaFavorites`/`setDuaFavorites` + heart toggle on Duas | Favorites persist; heart icon toggles |
 | [x] | Search (duas, content) | Search UI | TextInput filter on Duas screen | Query filters list correctly |
@@ -167,8 +168,8 @@ Add every route/screen and data dependency as a row in the right section (or §1
 | [x] | Settings screen | Route + component | `app/(tabs)/settings.tsx` | All options visible and tappable |
 | [x] | Notification preferences | Toggles / time picker | Switch + `getNotificationsEnabled`/`setNotificationsEnabled` | Toggle persisted; alarms respect setting |
 | [x] | Sleep defaults (e.g. goal) | Form fields | Settings "Daily sleep goal (hours)" + Home "Xh / Yh goal" | Goal persisted; shown on Home with last night |
-| [ ] | Location (for prayer times) | Picker or auto | Future: expo-location | Optional; for prayer times |
-| [ ] | Language / locale | PWA i18n | Future: i18n | Optional |
+| [x] | Location (for prayer times) | Picker or auto | `expo-location` + Settings "Use device location" + Prayer screen | Permission + coords for prayer times and Qibla |
+| [x] | Language / locale | PWA i18n | `lib/i18n.ts` + LocaleProvider + Settings English/العربية | En/Ar; persisted; app-wide via context |
 | [x] | About / version | Screen or modal | Version from Constants + Privacy link | Version and links correct |
 | [x] | Data export / backup (if any) | Export flow | Settings "Export data" → Share JSON (sleep + alarms) | Export produces correct output |
 | [x] | Clear data / reset | Button + confirm | "Reset onboarding" + "Clear all data" + confirm | Reset onboarding or clear all (sleep, alarms, favorites, prefs); redirect to index/onboarding |
@@ -182,7 +183,7 @@ Add every route/screen and data dependency as a row in the right section (or §1
 | [x] | Request notification permission | Onboarding or settings | `requestPermissionsAsync()` in onboarding | Permission requested on "Get Started"; grant/deny handled |
 | [x] | Schedule local notifications | Web Push or equivalent | `lib/notifications.ts` + DAILY trigger per alarm | Scheduled notification fires at set time |
 | [x] | Notification tap → Deep link | Service worker / handler | `addNotificationResponseReceivedListener` in tabs layout | Tapping notification opens Alarms tab |
-| [ ] | Background fetch / sync (if any) | Service worker | Future: expo-task-manager | Optional; no PWA background sync in scope |
+| [x] | Background fetch / sync (if any) | Service worker | `lib/backgroundFetch.ts` + expo-background-fetch; refreshes prayer cache | Task registered in root layout; iOS UIBackgroundModes fetch |
 
 ---
 

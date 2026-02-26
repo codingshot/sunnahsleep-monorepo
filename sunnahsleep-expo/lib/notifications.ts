@@ -3,6 +3,9 @@ import { Platform } from "react-native";
 import type { Alarm } from "./storage";
 import { getNotificationsEnabled } from "./storage";
 
+export const ALARM_CATEGORY_ID = "alarm";
+const SNOOZE_MINUTES = 5;
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -19,6 +22,18 @@ export async function setupNotificationChannel(): Promise<void> {
       name: "Alarms & Reminders",
       importance: Notifications.AndroidImportance.HIGH,
     });
+  }
+  await setAlarmCategory();
+}
+
+export async function setAlarmCategory(): Promise<void> {
+  try {
+    await Notifications.setNotificationCategoryAsync(ALARM_CATEGORY_ID, [
+      { identifier: "SNOOZE", buttonTitle: "Snooze 5 min", options: { opensAppToForeground: false } },
+      { identifier: "DISMISS", buttonTitle: "Dismiss", options: { opensAppToForeground: false, isDestructive: true } },
+    ]);
+  } catch {
+    // Categories not supported (e.g. Expo Go)
   }
 }
 
@@ -43,6 +58,8 @@ export async function scheduleAlarmNotification(alarm: Alarm): Promise<string | 
         title: alarm.label,
         body: "Time for your reminder.",
         sound: true,
+        categoryIdentifier: ALARM_CATEGORY_ID,
+        data: { alarmId: alarm.id, alarmLabel: alarm.label },
       },
       trigger,
       identifier: alarm.id,
@@ -70,4 +87,24 @@ export async function rescheduleAllAlarms(alarms: Alarm[]): Promise<void> {
 
 export async function cancelAllScheduledNotifications(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
+}
+
+export function scheduleSnoozeNotification(alarmId: string, alarmLabel: string): void {
+  const trigger: Notifications.TimeIntervalTriggerInput = {
+    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+    seconds: SNOOZE_MINUTES * 60,
+    repeats: false,
+  };
+  if (Platform.OS === "android") (trigger as { channelId?: string }).channelId = "alarms";
+  Notifications.scheduleNotificationAsync({
+    content: {
+      title: alarmLabel,
+      body: "Snooze reminder.",
+      sound: true,
+      categoryIdentifier: ALARM_CATEGORY_ID,
+      data: { alarmId, alarmLabel },
+    },
+    trigger,
+    identifier: `snooze-${alarmId}-${Date.now()}`,
+  }).catch(() => {});
 }

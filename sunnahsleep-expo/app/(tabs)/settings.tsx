@@ -16,14 +16,17 @@ import Constants from "expo-constants";
 import { useColorScheme } from "react-native";
 import { theme } from "@/constants/theme";
 import { cancelAllScheduledNotifications } from "@/lib/notifications";
+import { useLocale } from "@/lib/i18n";
 import {
   clearAllData,
   getAlarms,
   getNotificationsEnabled,
   getSleepEntries,
   getSleepGoalHours,
+  getUseLocationForPrayer,
   setNotificationsEnabled as persistNotificationsEnabled,
   setSleepGoalHours,
+  setUseLocationForPrayer,
   STORAGE_KEYS,
 } from "@/lib/storage";
 
@@ -32,13 +35,16 @@ const ONBOARDING_DONE_KEY = STORAGE_KEYS.ONBOARDING_DONE;
 export default function SettingsScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
+  const { t, locale, setLocale } = useLocale();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [sleepGoal, setSleepGoal] = useState("8");
+  const [useLocationForPrayer, setUseLocationForPrayerState] = useState(true);
   const primaryColor = colorScheme === "dark" ? theme.dark.primary : theme.light.primary;
 
   useEffect(() => {
     getNotificationsEnabled().then(setNotificationsEnabled);
     getSleepGoalHours().then((h) => setSleepGoal(String(h)));
+    getUseLocationForPrayer().then(setUseLocationForPrayerState);
   }, []);
 
   const onSleepGoalBlur = useCallback(async () => {
@@ -67,6 +73,11 @@ export default function SettingsScreen() {
   const onNotificationsToggle = useCallback(async (value: boolean) => {
     setNotificationsEnabled(value);
     await persistNotificationsEnabled(value);
+  }, []);
+
+  const onUseLocationForPrayerToggle = useCallback(async (value: boolean) => {
+    setUseLocationForPrayerState(value);
+    await setUseLocationForPrayer(value);
   }, []);
 
   const handleResetOnboarding = () => {
@@ -140,6 +151,54 @@ export default function SettingsScreen() {
               thumbColor="#fff"
               accessibilityLabel="Alarm and reminder notifications"
             />
+          </View>
+        </View>
+
+        <View className="mt-6">
+          <Text className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("location")}
+          </Text>
+          <View className="flex-row items-center justify-between rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3">
+            <Text className="flex-1 text-foreground dark:text-foreground-dark">
+              {t("use_location_prayer")}
+            </Text>
+            <Switch
+              value={useLocationForPrayer}
+              onValueChange={onUseLocationForPrayerToggle}
+              trackColor={{ false: "#d1d5db", true: primaryColor }}
+              thumbColor="#fff"
+              accessibilityLabel={t("use_location_prayer")}
+            />
+          </View>
+        </View>
+
+        <View className="mt-6">
+          <Text className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("language")}
+          </Text>
+          <View className="flex-row gap-2">
+            <Pressable
+              onPress={() => setLocale("en")}
+              className={`min-h-[44px] flex-1 items-center justify-center rounded-lg border py-3 ${
+                locale === "en" ? "border-primary bg-primary" : "border-border dark:border-border-dark bg-card dark:bg-card-dark"
+              }`}
+              accessibilityLabel="English"
+            >
+              <Text className={locale === "en" ? "font-semibold text-primaryForeground" : "text-foreground dark:text-foreground-dark"}>
+                English
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setLocale("ar")}
+              className={`min-h-[44px] flex-1 items-center justify-center rounded-lg border py-3 ${
+                locale === "ar" ? "border-primary bg-primary" : "border-border dark:border-border-dark bg-card dark:bg-card-dark"
+              }`}
+              accessibilityLabel="Arabic"
+            >
+              <Text className={locale === "ar" ? "font-semibold text-primaryForeground" : "text-foreground dark:text-foreground-dark"}>
+                العربية
+              </Text>
+            </Pressable>
           </View>
         </View>
 

@@ -4,6 +4,7 @@ import { Tabs, useRouter } from "expo-router";
 import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { theme } from "@/constants/theme";
+import { scheduleSnoozeNotification } from "@/lib/notifications";
 
 type IconName = React.ComponentProps<typeof FontAwesome>["name"];
 
@@ -17,8 +18,15 @@ export default function TabLayout() {
   const router = useRouter();
 
   useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener(() => {
-      router.replace("/(tabs)/alarms");
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const actionId = response.actionIdentifier;
+      const data = response.notification.request.content.data as { alarmId?: string; alarmLabel?: string } | undefined;
+      if (actionId === "SNOOZE" && data?.alarmId && data?.alarmLabel) {
+        scheduleSnoozeNotification(data.alarmId, data.alarmLabel);
+      }
+      if (actionId === Notifications.DEFAULT_ACTION_IDENTIFIER || actionId === "DISMISS" || actionId === "SNOOZE") {
+        router.replace("/(tabs)/alarms");
+      }
     });
     return () => sub.remove();
   }, [router]);
@@ -56,6 +64,13 @@ export default function TabLayout() {
         options={{
           title: "Duas",
           tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="prayer"
+        options={{
+          title: "Prayer",
+          tabBarIcon: ({ color }) => <TabBarIcon name="compass" color={color} />,
         }}
       />
       <Tabs.Screen
