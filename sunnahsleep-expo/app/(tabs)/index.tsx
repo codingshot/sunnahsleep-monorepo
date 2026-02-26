@@ -1,0 +1,109 @@
+import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { ErrorView } from "@/components/ErrorView";
+import { durationHours, formatDuration } from "@/lib/sleepStats";
+import { getSleepEntries, getSleepGoalHours } from "@/lib/storage";
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [lastSleep, setLastSleep] = useState<{ bedtime: string; waketime: string } | null>(null);
+  const [goalHours, setGoalHours] = useState(8);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  const load = useCallback(() => {
+    setLoadError(null);
+    getSleepEntries()
+      .then((entries) => {
+        setLastSleep(entries.length > 0 ? entries[0] : null);
+      })
+      .catch(() => setLoadError("Could not load sleep data."));
+    getSleepGoalHours().then(setGoalHours).catch(() => {});
+  }, []);
+
+  useFocusEffect(load);
+
+  return (
+    <ScrollView
+      className="flex-1 bg-background dark:bg-background-dark"
+      accessibilityLabel="Home screen"
+    >
+      <View className="p-6 pt-4">
+        <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark">
+          {greeting}
+        </Text>
+        <Text className="mt-1 text-muted-foreground">
+          May your sleep be blessed.
+        </Text>
+
+        <View className="mt-8 gap-4">
+          <Pressable
+            onPress={() => router.push("/(tabs)/sleep")}
+            className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
+            accessibilityLabel="Log sleep"
+            accessibilityHint="Opens screen to record last night's sleep"
+          >
+            <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+              Log sleep
+            </Text>
+            <Text className="mt-1 text-muted-foreground">
+              Record last night's sleep
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/(tabs)/alarms")}
+            className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
+            accessibilityLabel="Alarms"
+            accessibilityHint="Set bedtime and Fajr reminders"
+          >
+            <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+              Alarms
+            </Text>
+            <Text className="mt-1 text-muted-foreground">
+              Set bedtime and Fajr reminders
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.push("/(tabs)/duas")}
+            className="min-h-[44px] rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4 active:opacity-80"
+            accessibilityLabel="Bedtime Duas"
+            accessibilityHint="Read evening adhkar"
+          >
+            <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
+              Bedtime Duas
+            </Text>
+            <Text className="mt-1 text-muted-foreground">
+              Read and listen to evening adhkar
+            </Text>
+          </Pressable>
+        </View>
+
+        {loadError && (
+          <View className="mt-6">
+            <ErrorView message={loadError} onRetry={load} />
+          </View>
+        )}
+
+        <View
+          className="mt-8 rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4"
+          accessibilityLabel="Last night sleep summary"
+        >
+          <Text className="font-semibold text-foreground dark:text-foreground-dark">
+            Last night
+          </Text>
+          <Text className="mt-2 text-muted-foreground">
+            {lastSleep
+              ? `${lastSleep.bedtime} → ${lastSleep.waketime} (${formatDuration(durationHours(lastSleep.bedtime, lastSleep.waketime))} / ${goalHours}h goal)`
+              : 'No sleep logged yet. Tap "Log sleep" to add your first entry.'}
+          </Text>
+        </View>
+      </View>
+    </ScrollView>
+  );
+}

@@ -1,0 +1,14 @@
+---
+description: PWA→Expo migration: follow methodology and feature parity checklist
+globs: sunnahsleep-expo/**/* sunnah-sleep-pwa/**/*
+alwaysApply: false
+---
+
+# PWA → Expo Migration
+
+- **Source:** `sunnah-sleep-pwa` (web PWA). **Target:** `sunnahsleep-expo` (React Expo app with NativeWind).
+- **To trigger migration:** Use the exact prompts in `docs/TRIGGER_MIGRATION.md` (full run, next batch, single section, or verify only).
+- **Methodology:** Follow `docs/MIGRATION_METHODOLOGY.md` for stack alignment, NativeWind, recommended order (§6), and feature discovery (§4).
+- **Checklist:** Work in the order in `docs/FEATURE_PARITY_CHECKLIST.md` (Recommended migration order). Before marking a feature done, run the "How to verify" steps for that row and only then set status to `[x]`.
+- When adding or changing behavior in Expo, update the checklist if it introduces a new user-facing feature or changes a verification step.
+- Map PWA routes to Expo Router file-based routes; PWA storage (localStorage/IndexedDB) to AsyncStorage or expo-secure-store; web notifications to Expo Notifications.

@@ -1,0 +1,12 @@
+---
+description: Use NativeWind (Tailwind for RN) for all styling in sunnahsleep-expo
+globs: sunnahsleep-expo/**/*
+alwaysApply: false
+---
+
+# Expo App Styling: NativeWind
+
+- **All UI styling** in `sunnahsleep-expo` must use **NativeWind**: use `className` with Tailwind-style classes on React Native components (e.g. `View`, `Text`, `Pressable`).
+- **Do not** use `StyleSheet.create()` or inline `style={{}}` for layout, spacing, colors, or typography. Use `className` instead so the app stays consistent with Tailwind and looks good.
+- Example: `<View className="flex-1 bg-background p-4"><Text className="text-lg font-semibold text-foreground">Title</Text></View>`
+- Ensure `tailwind.config.js`, `global.css`, and Metro/Babel are configured for NativeWind per official docs. Design tokens (colors, spacing) should align with the PWA where possible.
