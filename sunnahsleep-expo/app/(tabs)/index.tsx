@@ -1,7 +1,7 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { ErrorView } from "@/components/ErrorView";
 import { useLocale } from "@/lib/i18n";
 import { durationHours, formatDuration } from "@/lib/sleepStats";
@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const [lastSleep, setLastSleep] = useState<{ bedtime: string; waketime: string } | null>(null);
   const [goalHours, setGoalHours] = useState(8);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const hour = new Date().getHours();
   const greeting =
     hour < 12 ? t("greeting_morning") : hour < 17 ? t("greeting_afternoon") : t("greeting_evening");
@@ -23,23 +24,40 @@ export default function HomeScreen() {
       .then((entries) => {
         setLastSleep(entries.length > 0 ? entries[0] : null);
       })
-      .catch(() => setLoadError("Could not load sleep data."));
+      .catch(() => setLoadError(t("error_load_sleep")));
     getSleepGoalHours().then(setGoalHours).catch(() => {});
-  }, []);
+  }, [t]);
 
   useFocusEffect(load);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setLoadError(null);
+    try {
+      const [entries, goal] = await Promise.all([getSleepEntries(), getSleepGoalHours()]);
+      setLastSleep(entries.length > 0 ? entries[0] : null);
+      setGoalHours(goal);
+    } catch {
+      setLoadError(t("error_load_sleep"));
+    } finally {
+      setRefreshing(false);
+    }
+  }, [t]);
 
   return (
     <ScrollView
       className="flex-1 bg-background dark:bg-background-dark"
       accessibilityLabel="Home screen"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
       <View className="p-6 pt-4">
         <Text className="text-2xl font-bold text-foreground dark:text-foreground-dark">
           {greeting}
         </Text>
         <Text className="mt-1 text-muted-foreground">
-          May your sleep be blessed.
+          {t("subtitle_blessed")}
         </Text>
 
         <View className="mt-8 gap-4">
@@ -53,7 +71,7 @@ export default function HomeScreen() {
               {t("log_sleep")}
             </Text>
             <Text className="mt-1 text-muted-foreground">
-              Record last night's sleep
+              {t("record_last_night")}
             </Text>
           </Pressable>
 
@@ -95,14 +113,14 @@ export default function HomeScreen() {
               {t("prayer_times")}
             </Text>
             <Text className="mt-1 text-muted-foreground">
-              Today's times and Qibla direction
+              {t("prayer_subtitle")}
             </Text>
           </Pressable>
         </View>
 
         {loadError && (
           <View className="mt-6">
-            <ErrorView message={loadError} onRetry={load} />
+            <ErrorView message={loadError} onRetry={load} retryLabel={t("try_again")} />
           </View>
         )}
 

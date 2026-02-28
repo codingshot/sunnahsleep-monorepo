@@ -2,12 +2,17 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useLocale } from "@/lib/i18n";
 import {
   averageHours,
   durationHours,
@@ -15,14 +20,18 @@ import {
   formatDuration,
 } from "@/lib/sleepStats";
 import { getSleepEntries, setSleepEntries, type SleepEntry } from "@/lib/storage";
+import { isValidTimeFormat } from "@/lib/validation";
 
 type DateFilter = 7 | 30 | 0;
 
 export default function SleepScreen() {
+  const { t } = useLocale();
+  const { placeholder } = useThemeColors();
   const [bedtime, setBedtime] = useState("");
   const [waketime, setWaketime] = useState("");
   const [entries, setEntries] = useState<SleepEntry[]>([]);
   const [dateFilter, setDateFilter] = useState<DateFilter>(30);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +58,11 @@ export default function SleepScreen() {
 
   const handleSave = async () => {
     if (!bedtime.trim() || !waketime.trim()) {
-      Alert.alert("Missing fields", "Enter both bedtime and wake time.");
+      Alert.alert(t("missing_fields"), t("missing_fields"));
+      return;
+    }
+    if (!isValidTimeFormat(bedtime.trim()) || !isValidTimeFormat(waketime.trim())) {
+      Alert.alert(t("invalid_time"), t("invalid_time"));
       return;
     }
     const yesterday = new Date();
@@ -67,7 +80,7 @@ export default function SleepScreen() {
       setWaketime("");
     } catch {
       setEntries(entries);
-      Alert.alert("Error", "Could not save. Please try again.");
+      Alert.alert(t("error"), t("error_save"));
     }
   };
 
@@ -86,6 +99,10 @@ export default function SleepScreen() {
       setEditingIndex(null);
       return;
     }
+    if (!isValidTimeFormat(editBedtime.trim()) || !isValidTimeFormat(editWaketime.trim())) {
+      Alert.alert(t("invalid_time"), t("invalid_time"));
+      return;
+    }
     const next = [...entries];
     const existing = next[editingIndex];
     next[editingIndex] = {
@@ -99,16 +116,16 @@ export default function SleepScreen() {
       setEditingIndex(null);
     } catch {
       setEntries(entries);
-      Alert.alert("Error", "Could not save. Please try again.");
+      Alert.alert(t("error"), t("error_save"));
     }
   };
 
   const handleDelete = (filteredIdx: number) => {
     const realIdx = filteredIndices[filteredIdx];
-    Alert.alert("Delete entry", "Remove this sleep entry?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("delete"), t("delete_confirm_sleep"), [
+      { text: t("cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("delete"),
         style: "destructive",
         onPress: async () => {
           const next = entries.filter((_, idx) => idx !== realIdx);
@@ -117,67 +134,91 @@ export default function SleepScreen() {
             await setSleepEntries(next);
           } catch {
             setEntries(entries);
-            Alert.alert("Error", "Could not delete. Please try again.");
+            Alert.alert(t("error"), t("error_delete"));
           }
         },
       },
     ]);
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const list = await getSleepEntries();
+      setEntries(list);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-background dark:bg-background-dark"
-      accessibilityLabel="Sleep log screen"
     >
+      <ScrollView
+        className="flex-1 bg-background dark:bg-background-dark"
+        accessibilityLabel="Sleep log screen"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        keyboardShouldPersistTaps="handled"
+      >
       <View className="p-6 pt-4">
         <Text className="text-xl font-bold text-foreground dark:text-foreground-dark">
-          Log sleep
+          {t("log_sleep")}
         </Text>
         <Text className="mt-1 text-muted-foreground">
-          Record when you went to bed and woke up.
+          {t("log_sleep_subtitle")}
         </Text>
 
         <View className="mt-6 gap-4">
           <View>
             <Text className="mb-2 font-medium text-foreground dark:text-foreground-dark">
-              Bedtime
+              {t("bedtime")}
             </Text>
             <TextInput
               className="rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 text-foreground dark:text-foreground-dark"
               placeholder="e.g. 22:30"
-              placeholderTextColor="#a8a29e"
+              placeholderTextColor={placeholder}
               value={bedtime}
               onChangeText={setBedtime}
-              accessibilityLabel="Bedtime"
+              accessibilityLabel={t("bedtime")}
             />
           </View>
           <View>
             <Text className="mb-2 font-medium text-foreground dark:text-foreground-dark">
-              Wake time
+              {t("waketime")}
             </Text>
             <TextInput
               className="rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 text-foreground dark:text-foreground-dark"
               placeholder="e.g. 06:00"
-              placeholderTextColor="#a8a29e"
+              placeholderTextColor={placeholder}
               value={waketime}
               onChangeText={setWaketime}
-              accessibilityLabel="Wake time"
+              accessibilityLabel={t("waketime")}
             />
           </View>
           <Pressable
             onPress={handleSave}
             className="mt-2 min-h-[44px] rounded-lg bg-primary py-3 active:opacity-90"
-            accessibilityLabel="Save sleep entry"
+            accessibilityLabel={t("save")}
           >
-            <Text className="text-center font-semibold text-primaryForeground">Save</Text>
+            <Text className="text-center font-semibold text-primaryForeground">{t("save")}</Text>
           </Pressable>
         </View>
+
+        {entries.length === 0 && (
+          <Text className="mt-6 text-center text-muted-foreground">
+            {t("no_entries_yet")}
+          </Text>
+        )}
 
         {entries.length > 0 && (
           <>
             <View className="mt-8 rounded-xl border border-border dark:border-border-dark bg-card dark:bg-card-dark p-4">
               <Text className="font-semibold text-foreground dark:text-foreground-dark">
-                Stats
+                {t("stats")}
               </Text>
               <View className="mt-2 flex-row flex-wrap gap-4">
                 <Text className="text-muted-foreground">
@@ -216,7 +257,7 @@ export default function SleepScreen() {
         {filteredEntries.length > 0 && (
           <View className="mt-6">
             <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Recent entries
+              {t("recent_entries")}
             </Text>
             {filteredEntries.map((e, filteredIdx) => {
               const i = filteredIndices[filteredIdx];
@@ -232,26 +273,28 @@ export default function SleepScreen() {
                       className="rounded border border-border dark:border-border-dark bg-background dark:bg-background-dark px-3 py-2 text-foreground dark:text-foreground-dark"
                       value={editBedtime}
                       onChangeText={setEditBedtime}
-                      placeholder="Bedtime"
+                      placeholder={t("bedtime")}
+                      placeholderTextColor={placeholder}
                     />
                     <TextInput
                       className="rounded border border-border dark:border-border-dark bg-background dark:bg-background-dark px-3 py-2 text-foreground dark:text-foreground-dark"
                       value={editWaketime}
                       onChangeText={setEditWaketime}
-                      placeholder="Wake time"
+                      placeholder={t("waketime")}
+                      placeholderTextColor={placeholder}
                     />
-                    <View className="flex-row gap-2 mt-2">
+                    <View className="mt-2 flex-row gap-2">
                       <Pressable
                         onPress={handleSaveEdit}
-                        className="flex-1 rounded bg-primary py-2"
+                        className="min-h-[44px] flex-1 items-center justify-center rounded bg-primary py-2"
                       >
-                        <Text className="text-center text-primaryForeground font-medium">Save</Text>
+                        <Text className="text-center font-medium text-primaryForeground">{t("save")}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => setEditingIndex(null)}
-                        className="flex-1 rounded border border-border dark:border-border-dark py-2"
+                        className="min-h-[44px] flex-1 items-center justify-center rounded border border-border dark:border-border-dark py-2"
                       >
-                        <Text className="text-center text-foreground dark:text-foreground-dark">Cancel</Text>
+                        <Text className="text-center text-foreground dark:text-foreground-dark">{t("cancel")}</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -270,16 +313,16 @@ export default function SleepScreen() {
                       <Pressable
                         onPress={() => handleEdit(i)}
                         className="min-h-[44px] min-w-[44px] items-center justify-center rounded px-3 py-1.5 active:opacity-80"
-                        accessibilityLabel="Edit entry"
+                        accessibilityLabel={t("edit")}
                       >
-                        <Text className="text-primary dark:text-primary-dark">Edit</Text>
+                        <Text className="text-primary dark:text-primary-dark">{t("edit")}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => handleDelete(filteredIdx)}
                         className="min-h-[44px] min-w-[44px] items-center justify-center rounded px-3 py-1.5 active:opacity-80"
-                        accessibilityLabel="Delete entry"
+                        accessibilityLabel={t("delete")}
                       >
-                        <Text className="text-destructive">Delete</Text>
+                        <Text className="text-destructive">{t("delete")}</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -291,5 +334,6 @@ export default function SleepScreen() {
         )}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

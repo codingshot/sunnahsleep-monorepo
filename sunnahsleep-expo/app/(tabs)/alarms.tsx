@@ -2,6 +2,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -11,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { theme } from "@/constants/theme";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useLocale } from "@/lib/i18n";
 import {
   cancelAlarmNotification,
   scheduleAlarmNotification,
@@ -20,6 +24,8 @@ import { isValidTimeFormat } from "@/lib/validation";
 
 export default function AlarmsScreen() {
   const colorScheme = useColorScheme();
+  const { t } = useLocale();
+  const { placeholder } = useThemeColors();
   const primaryColor = colorScheme === "dark" ? theme.dark.primary : theme.light.primary;
   const [alarms, setAlarmsState] = useState<Alarm[]>([]);
   const [newTime, setNewTime] = useState("");
@@ -38,7 +44,7 @@ export default function AlarmsScreen() {
     const time = newTime.trim();
     if (!time) return;
     if (!isValidTimeFormat(time)) {
-      Alert.alert("Invalid time", "Use format HH:mm (e.g. 05:30 or 22:00).");
+      Alert.alert(t("invalid_time"), t("invalid_time"));
       return;
     }
     const newAlarm: Alarm = {
@@ -56,7 +62,7 @@ export default function AlarmsScreen() {
       setNewLabel("");
     } catch {
       setAlarmsState(alarms);
-      Alert.alert("Error", "Could not add alarm. Please try again.");
+      Alert.alert(t("error"), t("error_add"));
     }
   };
 
@@ -73,7 +79,7 @@ export default function AlarmsScreen() {
       else await cancelAlarmNotification(id);
     } catch {
       setAlarmsState(prev);
-      Alert.alert("Error", "Could not update alarm. Please try again.");
+      Alert.alert(t("error"), t("error_update"));
     }
   };
 
@@ -85,7 +91,7 @@ export default function AlarmsScreen() {
       await setAlarms(next);
     } catch {
       setAlarmsState(alarms);
-      Alert.alert("Error", "Could not remove alarm. Please try again.");
+      Alert.alert(t("error"), t("error_remove"));
     }
   };
 
@@ -102,7 +108,7 @@ export default function AlarmsScreen() {
       return;
     }
     if (!isValidTimeFormat(time)) {
-      Alert.alert("Invalid time", "Use format HH:mm (e.g. 05:30 or 22:00).");
+      Alert.alert(t("invalid_time"), t("invalid_time"));
       return;
     }
     const next = alarms.map((al) =>
@@ -121,57 +127,62 @@ export default function AlarmsScreen() {
     } catch {
       setAlarmsState(prev);
       setEditingId(editingId);
-      Alert.alert("Error", "Could not save. Please try again.");
+      Alert.alert(t("error"), t("error_save"));
     }
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       className="flex-1 bg-background dark:bg-background-dark"
-      accessibilityLabel="Alarms screen"
     >
+      <ScrollView
+        className="flex-1 bg-background dark:bg-background-dark"
+        accessibilityLabel="Alarms screen"
+        keyboardShouldPersistTaps="handled"
+      >
       <View className="p-6 pt-4">
         <Text className="text-xl font-bold text-foreground dark:text-foreground-dark">
-          Alarms
+          {t("alarms")}
         </Text>
         <Text className="mt-1 text-muted-foreground">
-          Set reminders for bedtime and Fajr.
+          {t("alarms_subtitle")}
         </Text>
 
         <View className="mt-6 gap-4">
           <View>
             <Text className="mb-2 font-medium text-foreground dark:text-foreground-dark">
-              Time
+              {t("time")}
             </Text>
             <TextInput
               className="rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 text-foreground dark:text-foreground-dark"
               placeholder="e.g. 05:30"
-              placeholderTextColor="#a8a29e"
+              placeholderTextColor={placeholder}
               value={newTime}
               onChangeText={setNewTime}
-              accessibilityLabel="Alarm time"
+              accessibilityLabel={t("time")}
             />
           </View>
           <View>
             <Text className="mb-2 font-medium text-foreground dark:text-foreground-dark">
-              Label (optional)
+              {t("label_optional")}
             </Text>
             <TextInput
               className="rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 text-foreground dark:text-foreground-dark"
               placeholder="e.g. Fajr"
-              placeholderTextColor="#a8a29e"
+              placeholderTextColor={placeholder}
               value={newLabel}
               onChangeText={setNewLabel}
-              accessibilityLabel="Alarm label"
+              accessibilityLabel={t("label_optional")}
             />
           </View>
           <Pressable
             onPress={addAlarm}
             className="min-h-[44px] rounded-lg bg-primary py-3 active:opacity-90"
-            accessibilityLabel="Add alarm"
+            accessibilityLabel={t("add_alarm")}
           >
             <Text className="text-center font-semibold text-primaryForeground">
-              Add alarm
+              {t("add_alarm")}
             </Text>
           </Pressable>
         </View>
@@ -179,7 +190,7 @@ export default function AlarmsScreen() {
         {alarms.length > 0 && (
           <View className="mt-8">
             <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark">
-              Your alarms
+              {t("your_alarms")}
             </Text>
             {alarms.map((al) => (
               <View
@@ -192,26 +203,28 @@ export default function AlarmsScreen() {
                       className="rounded-lg border border-border dark:border-border-dark bg-background dark:bg-background-dark px-3 py-2 text-foreground dark:text-foreground-dark"
                       value={editTime}
                       onChangeText={setEditTime}
-                      placeholder="Time"
+                      placeholder={t("time")}
+                      placeholderTextColor={placeholder}
                     />
                     <TextInput
                       className="rounded-lg border border-border dark:border-border-dark bg-background dark:bg-background-dark px-3 py-2 text-foreground dark:text-foreground-dark"
                       value={editLabel}
                       onChangeText={setEditLabel}
-                      placeholder="Label"
+                      placeholder={t("label_optional")}
+                      placeholderTextColor={placeholder}
                     />
                     <View className="flex-row gap-2">
                       <Pressable
                         onPress={saveEdit}
                         className="min-h-[44px] flex-1 items-center justify-center rounded bg-primary py-2"
                       >
-                        <Text className="font-medium text-primaryForeground">Save</Text>
+                        <Text className="font-medium text-primaryForeground">{t("save")}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => setEditingId(null)}
                         className="min-h-[44px] flex-1 items-center justify-center rounded border border-border dark:border-border-dark py-2"
                       >
-                        <Text className="text-foreground dark:text-foreground-dark">Cancel</Text>
+                        <Text className="text-foreground dark:text-foreground-dark">{t("cancel")}</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -234,16 +247,16 @@ export default function AlarmsScreen() {
                       <Pressable
                         onPress={() => startEdit(al)}
                         className="min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 active:opacity-80"
-                        accessibilityLabel="Edit alarm"
+                        accessibilityLabel={t("edit")}
                       >
-                        <Text className="text-primary dark:text-primary-dark">Edit</Text>
+                        <Text className="text-primary dark:text-primary-dark">{t("edit")}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => removeAlarm(al.id)}
                         className="min-h-[44px] min-w-[44px] items-center justify-center rounded px-2 py-1 active:opacity-70"
-                        accessibilityLabel="Remove alarm"
+                        accessibilityLabel={t("remove")}
                       >
-                        <Text className="text-destructive">Remove</Text>
+                        <Text className="text-destructive">{t("remove")}</Text>
                       </Pressable>
                     </View>
                   </View>
@@ -255,10 +268,11 @@ export default function AlarmsScreen() {
 
         {alarms.length === 0 && (
           <Text className="mt-6 text-center text-muted-foreground">
-            No alarms yet. Add one above.
+            {t("no_alarms_yet")}
           </Text>
         )}
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

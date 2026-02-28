@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/prayerTimes";
 import { qiblaAngleFromCoords, qiblaDescription } from "@/lib/qibla";
 import { getCoordsForPrayer, requestLocationAndGetCoords } from "@/lib/location";
+import { useThemeColors } from "@/hooks/useThemeColors";
 import {
   getPrayerTimesCache,
   getUseLocationForPrayer,
@@ -28,6 +30,7 @@ import { useLocale } from "@/lib/i18n";
 
 export default function PrayerScreen() {
   const { t } = useLocale();
+  const { primary } = useThemeColors();
   const [timings, setTimings] = useState<PrayerTimings | null>(null);
   const [qiblaAngle, setQiblaAngle] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,34 +96,41 @@ export default function PrayerScreen() {
     setLoading(false);
   };
 
+  const onRefresh = useCallback(async () => {
+    await load();
+  }, [load]);
+
   return (
     <ScrollView
       className="flex-1 bg-background dark:bg-background-dark"
       accessibilityLabel={t("prayer_times")}
+      refreshControl={
+        <RefreshControl refreshing={loading} onRefresh={onRefresh} />
+      }
     >
       <View className="p-6 pt-4">
         <Text className="text-xl font-bold text-foreground dark:text-foreground-dark">
           {t("prayer_times")}
         </Text>
         <Text className="mt-1 text-muted-foreground">
-          Today's prayer times · Qibla direction
+          {t("prayer_subtitle")}
         </Text>
 
         {locationStatus && (
           <Pressable
             onPress={handleRefreshLocation}
             className="mt-4 min-h-[44px] flex-row items-center justify-center gap-2 rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 active:opacity-80"
-            accessibilityLabel="Use device location"
+            accessibilityLabel={t("tap_to_enable")}
           >
-            <FontAwesome name="location-arrow" size={18} color="#0f766e" />
+            <FontAwesome name="location-arrow" size={18} color={primary} />
             <Text className="text-foreground dark:text-foreground-dark">{locationStatus}</Text>
-            <Text className="text-primary dark:text-primary-dark">Tap to enable</Text>
+            <Text className="text-primary dark:text-primary-dark">{t("tap_to_enable")}</Text>
           </Pressable>
         )}
 
         {loading && (
           <View className="mt-6 items-center py-8">
-            <ActivityIndicator size="large" color="#0f766e" />
+            <ActivityIndicator size="large" color={primary} />
             <Text className="mt-2 text-muted-foreground">{t("loading")}</Text>
           </View>
         )}
@@ -128,8 +138,8 @@ export default function PrayerScreen() {
         {!loading && error && (
           <View className="mt-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4">
             <Text className="text-foreground dark:text-foreground-dark">{error}</Text>
-            <Pressable onPress={load} className="mt-3 min-h-[44px] items-center justify-center rounded bg-primary py-2">
-              <Text className="font-medium text-primaryForeground">Retry</Text>
+            <Pressable onPress={load} className="mt-3 min-h-[44px] items-center justify-center rounded bg-primary py-2" accessibilityLabel={t("retry")}>
+              <Text className="font-medium text-primaryForeground">{t("retry")}</Text>
             </Pressable>
           </View>
         )}
@@ -153,7 +163,7 @@ export default function PrayerScreen() {
             </Text>
             <Text className="mt-1 text-muted-foreground">{qiblaDescription(qiblaAngle)}</Text>
             <Text className="mt-2 text-sm text-muted-foreground">
-              Face this direction from North (clockwise) for Salah.
+              {t("qibla_hint")}
             </Text>
           </View>
         )}

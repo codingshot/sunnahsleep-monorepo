@@ -1,0 +1,36 @@
+{
+  "apple": {
+    "info": {
+      "en-US": {
+        "privacyPolicyUrl": "https://github.com/YOUR_ORG/sunnahsleep-monorepo/blob/main/sunnahsleep-expo/PRIVACY_POLICY.md",
+        "category": "Health & Fitness",
+        "name": "Sunnah Sleep: Sleep & Prayer",
+        "subtitle": "Fajr alarm, Qibla & adhkar",
+        "keywords": [
+          "bedtime",
+          "prayer times",
+          "dua",
+          "islamic",
+          "reminder",
+          "wake",
+          "adhkar",
+          "dhikr",
+          "evening",
+          "sleep tracker",
+          "namaz",
+          "muslim",
+          "tasbih"
+        ]
+      }
+    }
+  },
+  "android": {
+    "info": {
+      "en-US": {
+        "privacyPolicyUrl": "https://github.com/YOUR_ORG/sunnahsleep-monorepo/blob/main/sunnahsleep-expo/PRIVACY_POLICY.md",
+        "shortDescription": "Sleep tracking, Fajr alarm, prayer times, Qibla & evening adhkar.",
+        "fullDescription": "Sunnah Sleep helps you build a blessed sleep routine: log sleep, set bedtime and Fajr alarms, see prayer times and Qibla direction, and read evening adhkar. All data stays on your device."
+      }
+    }
+  }
+}

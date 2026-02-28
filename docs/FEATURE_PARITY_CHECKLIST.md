@@ -13,9 +13,23 @@
 | Not started `[ ]` | 0 | — |
 | N/A | 5 | Auth (no PWA auth) |
 
-**Last updated:** Remaining optional features completed: Snooze/Dismiss, Prayer times, Qibla, Location, Language, Background fetch. Run `cd sunnahsleep-expo && npm run test` to verify TypeScript.
+**Last updated:** Mobile UX improvements: i18n tab titles, pull-to-refresh, KeyboardAvoidingView, error_load_sleep i18n. Run `cd sunnahsleep-expo && npm run test` to verify TypeScript.
 
-**Recent completions (this pass):**
+**Recent improvements (mobile UX):**
+- **Tab bar i18n:** Tab titles (Home, Sleep, Alarms, Duas, Prayer, Settings) use `t()` in `(tabs)/_layout.tsx` so they follow app language.
+- **Home load error i18n:** `error_load_sleep` string in en/ar; Home uses it in catch and in pull-to-refresh.
+- **Pull-to-refresh:** Home, Sleep, Duas, and Prayer screens have `RefreshControl` for refresh-on-pull.
+- **Keyboard handling:** Sleep and Alarms use `KeyboardAvoidingView` and `keyboardShouldPersistTaps="handled"` so forms stay usable with keyboard open.
+
+**UX & UI audit (PWA/Expo consistency):**
+- **Theme:** No hardcoded hex for placeholders or spinners — `useThemeColors()` hook used for `placeholderTextColor`, `ActivityIndicator` color, and location icon (Prayer). All screens use semantic classes per THEME.md.
+- **i18n:** Home, Sleep, Alarms, Duas, Prayer, Settings, and ErrorView use `t()` for user-facing strings; en/ar strings added for subtitles, labels, buttons, empty states, and alerts.
+- **Forms:** Sleep screen validates time format (HH:mm) via `isValidTimeFormat`; error alerts use i18n. Alarms already had validation; both use consistent messaging.
+- **Empty states:** Sleep shows “No entries yet. Log your first sleep above.” when list is empty; Alarms and Duas already had empty copy; all use i18n.
+- **Accessibility:** ErrorView and Prayer retry button have `accessibilityLabel`; Sleep edit/delete and Alarms edit/remove use `t()` for labels; tap targets remain ≥44pt.
+- **Consistency:** Section structure (title + subtitle), card borders, primary buttons, and destructive actions aligned across screens.
+
+**Previous completions:**
 - §5 Snooze/Dismiss: Notification category with "Snooze 5 min" and "Dismiss"; snooze schedules one-time notification; response listener in tabs layout.
 - §6 Prayer times: New Prayer tab; Aladhan API; by location or fallback address; cache + background refresh.
 - §6 Qibla: Angle and direction from user coords (lib/qibla.ts) on Prayer screen.

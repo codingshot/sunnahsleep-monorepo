@@ -1,8 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
+import { Pressable, RefreshControl, ScrollView, Text, TextInput, useColorScheme, View } from "react-native";
 import { theme } from "@/constants/theme";
+import { useThemeColors } from "@/hooks/useThemeColors";
+import { useLocale } from "@/lib/i18n";
 import { getDuaFavorites, setDuaFavorites } from "@/lib/storage";
 
 const DUAS = [
@@ -13,10 +15,13 @@ const DUAS = [
 
 export default function DuasScreen() {
   const colorScheme = useColorScheme();
+  const { t } = useLocale();
+  const { placeholder } = useThemeColors();
   const destructiveColor = colorScheme === "dark" ? theme.dark.destructive : theme.light.destructive;
   const mutedColor = colorScheme === "dark" ? theme.dark.mutedForeground : theme.light.mutedForeground;
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -45,23 +50,36 @@ export default function DuasScreen() {
         d.transliteration.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const list = await getDuaFavorites();
+      setFavorites(list);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   return (
     <ScrollView
       className="flex-1 bg-background dark:bg-background-dark"
       accessibilityLabel="Bedtime Duas screen"
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
       <View className="p-6 pt-4">
         <Text className="text-xl font-bold text-foreground dark:text-foreground-dark">
-          Bedtime Duas
+          {t("duas_title")}
         </Text>
         <Text className="mt-1 text-muted-foreground">
-          Evening adhkar and verses to recite before sleep.
+          {t("duas_subtitle")}
         </Text>
 
         <TextInput
           className="mt-4 rounded-lg border border-border dark:border-border-dark bg-card dark:bg-card-dark px-4 py-3 text-foreground dark:text-foreground-dark"
-          placeholder="Search duas..."
-          placeholderTextColor="#a8a29e"
+          placeholder={t("search_duas")}
+          placeholderTextColor={placeholder}
           value={search}
           onChangeText={setSearch}
           accessibilityLabel="Search duas"
@@ -74,10 +92,10 @@ export default function DuasScreen() {
               className={`min-h-[44px] min-w-[44px] items-center justify-center rounded-lg px-4 py-2 ${
                 !showFavoritesOnly ? "bg-primary" : "border border-border dark:border-border-dark bg-card dark:bg-card-dark"
               }`}
-              accessibilityLabel="Show all duas"
+              accessibilityLabel={t("all")}
             >
               <Text className={!showFavoritesOnly ? "font-medium text-primaryForeground" : "text-foreground dark:text-foreground-dark"}>
-                All
+                {t("all")}
               </Text>
             </Pressable>
             <Pressable
@@ -85,10 +103,10 @@ export default function DuasScreen() {
               className={`min-h-[44px] min-w-[44px] items-center justify-center rounded-lg px-4 py-2 ${
                 showFavoritesOnly ? "bg-primary" : "border border-border dark:border-border-dark bg-card dark:bg-card-dark"
               }`}
-              accessibilityLabel="Show favorites only"
+              accessibilityLabel={t("favorites")}
             >
               <Text className={showFavoritesOnly ? "font-medium text-primaryForeground" : "text-foreground dark:text-foreground-dark"}>
-                Favorites ({favorites.length})
+                {t("favorites")} ({favorites.length})
               </Text>
             </Pressable>
           </View>
@@ -132,7 +150,7 @@ export default function DuasScreen() {
 
         {filtered.length === 0 && (
           <Text className="mt-4 text-center text-muted-foreground">
-            No matching duas.
+            {t("no_matching_duas")}
           </Text>
         )}
       </View>

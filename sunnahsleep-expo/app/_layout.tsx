@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/components/useColorScheme";
+import { PlayerProvider } from "@/context/PlayerContext";
 import { registerBackgroundFetchAsync } from "@/lib/backgroundFetch";
 import { LocaleProvider } from "@/lib/i18n";
 import { setupNotificationChannel } from "@/lib/notifications";
@@ -56,12 +57,14 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <LocaleProvider>
-        <Stack screenOptions={{ headerShown: false }}>
+        <PlayerProvider>
+          <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="modal" options={{ presentation: "modal" }} />
         </Stack>
+        </PlayerProvider>
       </LocaleProvider>
     </ThemeProvider>
   );
