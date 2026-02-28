@@ -2,7 +2,7 @@
 
 Use this checklist and copy when submitting **Sunnah Sleep** to the Apple App Store and Google Play Store.
 
-**ASO reference:** Metadata and structure follow [aso-skills](https://github.com/Eronred/aso-skills) (ASO audit, metadata-optimization, keyword-research, screenshot-optimization). App context: [app-marketing-context.md](./app-marketing-context.md).
+**ASO reference:** Metadata and structure follow [aso-skills](https://github.com/Eronred/aso-skills). App context: [app-marketing-context.md](./app-marketing-context.md). See also: [ASO_COMPETITOR_ANALYSIS.md](./ASO_COMPETITOR_ANALYSIS.md) · [ASO_REVIEW_MANAGEMENT.md](./ASO_REVIEW_MANAGEMENT.md) · [ASO_LOCALIZATION.md](./ASO_LOCALIZATION.md) · [ASO_APP_LAUNCH.md](./ASO_APP_LAUNCH.md) · [ASO_FEATURED.md](./ASO_FEATURED.md) · [ASO_AB_TESTING.md](./ASO_AB_TESTING.md).
 
 ---
 

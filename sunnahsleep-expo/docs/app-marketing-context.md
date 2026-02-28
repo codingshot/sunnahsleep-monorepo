@@ -76,14 +76,18 @@ This document is the single source of context for ASO and app marketing. It foll
 
 ---
 
-## Related ASO Skills (from aso-skills)
+## Related ASO Skills & Docs (from aso-skills)
 
-When running ASO work, prefer:
-
-- **aso-audit** — Full ASO health check and score card
-- **keyword-research** — Discover and prioritize keywords
-- **metadata-optimization** — Title, subtitle, keyword field, description
-- **screenshot-optimization** — 10-slot screenshot strategy and design brief
-- **competitor-analysis** — Keyword gaps and creative teardown
+| Skill | Local doc | Use for |
+|-------|-----------|--------|
+| aso-audit | [STORE_LISTING.md](./STORE_LISTING.md#aso-self-audit-aso-skills-style) | Score card, quick wins |
+| keyword-research / metadata-optimization | [STORE_LISTING.md](./STORE_LISTING.md) | Title, subtitle, keywords, description |
+| screenshot-optimization | [STORE_LISTING.md](./STORE_LISTING.md#screenshot-strategy-10-slots) | 10-slot screenshot plan |
+| competitor-analysis | [ASO_COMPETITOR_ANALYSIS.md](./ASO_COMPETITOR_ANALYSIS.md) | Metadata comparison, keyword gaps |
+| review-management | [ASO_REVIEW_MANAGEMENT.md](./ASO_REVIEW_MANAGEMENT.md) | HEAR, templates, rating prompt |
+| localization | [ASO_LOCALIZATION.md](./ASO_LOCALIZATION.md) | Markets, keywords ≠ translation |
+| app-launch | [ASO_APP_LAUNCH.md](./ASO_APP_LAUNCH.md) | 8-week launch checklist |
+| app-store-featured | [ASO_FEATURED.md](./ASO_FEATURED.md) | Featuring readiness, pitch template |
+| ab-test-store-listing | [ASO_AB_TESTING.md](./ASO_AB_TESTING.md) | PPO tests, hypotheses |
 
 Reference: [Eronred/aso-skills](https://github.com/Eronred/aso-skills)
